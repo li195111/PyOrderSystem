@@ -1,18 +1,55 @@
+from collections import Counter
 from datetime import datetime
-from items import Item, ItemType, MeatPart, CookMethod, Gender
+import configparser
+import json
+import enum
+
+from items import Item, Cut, Gender, ForGod
 from order import Order
 
 if __name__ == "__main__":
-    烤雞腿 = Item(ItemType.Chicken, MeatPart.Thigh, CookMethod.Roast)
-    叉燒 = Item(ItemType.Pork, MeatPart.Shoulder, CookMethod.BBQ)
-    燒肉 = Item(ItemType.Pork, MeatPart.Belly, CookMethod.Roast)
-    烤鴨 = Item(ItemType.Duck, MeatPart.Breast, CookMethod.Roast)
-    油雞 = Item(ItemType.Chicken, MeatPart.Breast, CookMethod.Oil)
+    cfg = configparser.ConfigParser()
+    cfg.read('config.ini')
+    categories = json.loads(cfg.get('Default','categories'))
+    print (categories)
+    category_map = {}
+    for idx, cate in enumerate(categories):
+        category_map[cate] = idx
+    print (category_map)
     
-    半隻油雞 = Item(ItemType.Chicken, MeatPart.Half, CookMethod.Oil)
-    半隻烤鴨 = Item(ItemType.Duck, MeatPart.Half, CookMethod.Roast, Gender.Male)
+    CATEGORIES = enum.Enum('Categories',category_map)
+    print (CATEGORIES['敬神公鴨'])
+        
+    meanu = [Item(name='烤雞腿', price_item=70, number=2),
+             Item(name='叉燒', price_tael=30),
+             Item(name='肝腸', price_tael=30),
+             Item(name='腊腸', price_tael=30),
+             Item(name='燒肉', price_tael=30),
+             
+             Cut(Gender(Item(name='烤雞', price_tael=15),'母')),
+             Cut(Gender(Item(name='烤雞', price_tael=15),'公')),
+             Cut(Gender(Item(name='油雞', price_tael=15),'公'),'半隻'),
+             Cut(Gender(Item(name='油雞', price_tael=15),'母'),),
+             
+             Cut(Gender(Item(name='烤鴨', price=680),'母')),
+             ForGod(Cut(Gender(Item(name='烤鴨', price=720),'公'))),
+             Cut(Gender(Item(name='烤鴨', price=350),'公'),'半隻'),
+             
+             Cut(Gender(Item(name='烤鴨', price_tael=18),'母')),             
+             
+             Cut(Gender(Item(name='烤鴨', price_tael=18),'母'),'四分之一'),
+             Cut(Gender(Item(name='烤鴨', price_tael=18),'公'),'四分之一')
+             ]
     
-    訂單1 = Order(datetime(2022,1,31,10), [烤雞腿, 半隻烤鴨, 叉燒], '李小姐', '0987654321')
+    print (Cut(Gender(Item(name='油雞', price_tael=15),'母'), '全隻'))
+    # print (dict(Counter(meanu)))
+    # meanu[1].weight_tael = 2
     
-    print (訂單1)
+    # print (f'{meanu[0]} {meanu[0].price_item}/隻 x {meanu[0].number:.1f} = {meanu[0].price}')
+    # print (f'{meanu[1]} {meanu[1].price_tael}/兩 x {meanu[1].weight_tael}兩 x {meanu[1].number:.1f} = {meanu[1].price_item}')
+    # print (meanu[2].details)
+    
+    order1 = Order(name='李小姐', phone='0987654321', order_datetime=datetime(2022,1,31,10), items=meanu)
+    
+    print (order1.details)
     

@@ -1,106 +1,74 @@
 from __future__ import annotations
 import abc
-import sys
-from enum import Enum
 
-NAME_MAP = {
-    ''
-}
-
-class CookMethod(Enum):
-    Roast = 0
-    Oil = 1
-    BBQ = 2
-    
-class Gender(Enum):
-    Female = 0
-    Male = 1
-    
-class ItemType(Enum):
-    Chicken = 0
-    Duck = 1
-    Pork = 2
-    
-class MeatPart(Enum):
-    Whole = 0
-    Half = 1
-    Head = 2
-    Neck = 3
-    Shoulder = 4
-    Arm = 5
-    Breast = 6
-    Back = 7
-    Belly = 8
-    Ass = 9
-    Thigh = 10
-
-class IItem(abc.ABC):
-    def __init__(self, item_type:ItemType, meat_part:MeatPart, cook_method:CookMethod, gender:Gender=Gender.Female, weight_tkg:float=None, price_tkg:float=None, price_item:float=None) -> None:
+class IProduct(abc.ABC):
+    def __init__(self, name:str='Some Product', price_item:float=0, price:float=0, number:float=1) -> None:
         super().__init__()
-        self.__item_type = item_type
-        self.__meat_part = meat_part
-        self.__cook_method = cook_method
-        self.__gender = gender
+        self.__name = name
+        self.__price_item = price_item
+        self.__price = price
+        self.__number = number
+    
+    def __repr__(self) -> str:
+        return self.name
+    
+    @property
+    def name(self):
+        return self.__name
+    
+    @name.setter
+    def name(self, value):
+        self.__name = str(value)
+        
+    @property
+    def price_item(self):
+        return self.__price_item
+    
+    @price_item.setter
+    def price_item(self, value):
+        self.__price_item = max(float(value),0)
+        
+    @property
+    def price(self):
+        return self.__price
+    
+    @price.setter
+    def price(self, value):
+        self.__price = max(float(value),0)
+        
+    @property
+    def number(self):
+        return self.__number
+    
+    @number.setter
+    def number(self, value):
+        self.__number = max(float(value),0)
+        
+    @abc.abstractmethod
+    def details(self):
+        '''Implements Method'''
+        return f'{self.name} x {self.number:.1f} = {self.price}'
+        
+    @abc.abstractmethod
+    def calc(self):
+        '''Implements Method'''
+        
+class WeightingProduct(IProduct):
+    def __init__(self, weight_tkg:float=0, price_tkg:float=0, weight_tael:float=0, price_tael:float=0,
+                 name: str = 'Some Product', price_item: float = 0, price: float = 0, number: float = 1) -> None:
+        super().__init__(name, price_item, price, number)
+        if not price_tkg == 0:
+            price_tael = price_tkg / 16
+        if not price_tael == 0:
+            price_tkg = price_tael * 16
+        if not price == 0:
+            price = float(price)
+            
         self.__weight_tkg = weight_tkg
         self.__price_tkg = price_tkg
-        self.__price_item = price_item
-        
-        self.__contains:list = []
-        
-    def __repr__(self) -> str:
-        item_name = f'{self.cook_method.value}{self.item_type.value}{self.meat_part.value}'
-        item_name_map = {'224':'叉燒','028':'燒肉'}
-        cook_map = {0:'烤',1:'油',2:'蜜汁'}
-        item_map = {0:'雞',1:'鴨',2:'豬'}
-        part_map = {0:'全隻',1:'半隻',2:'頭',3:'脖子',4:'肩',5:'翅',6:'胸',7:'背',8:'五花',9:'屁股',10:'腿'}
-        gender_map = {0:'母',1:'公'}
-        if item_name in item_name_map:
-            item_name = item_name_map[item_name]
-        else:
-            item_name = cook_map[self.cook_method.value] + item_map[self.item_type.value] + part_map[self.meat_part.value]
-        if self.item_type.value != 2:
-            item_name += gender_map[self.gender.value]
-        return item_name
-
-    @property
-    def item_type(self):
-        return self.__item_type
-    
-    @item_type.setter
-    def item_type(self, value:ItemType):
-        self.__item_type = value
-
-    @property
-    def meat_part(self):
-        return self.__meat_part
-    
-    @meat_part.setter
-    def meat_part(self, value:MeatPart):
-        self.__meat_part = value
-
-    @property
-    def cook_method(self):
-        return self.__cook_method
-    
-    @cook_method.setter
-    def cook_method(self, value:CookMethod):
-        self.__cook_method = bool(value)
-        
-    @property
-    def gender(self):
-        return self.__gender
-    
-    @gender.setter
-    def gender(self, value:Gender):
-        self.__gender = value
-        
-    @property
-    def contains(self):
-        return self.__contains
-    
-    @contains.setter
-    def contains(self, value:list):
-        self.__contains = value
+        self.__weight_tael = weight_tael
+        self.__price_tael = price_tael
+        self.calc()
         
     @property
     def weight_tkg(self):
@@ -109,6 +77,8 @@ class IItem(abc.ABC):
     @weight_tkg.setter
     def weight_tkg(self, value:float):
         self.__weight_tkg = max(float(value), 0)
+        self.__weight_tael = self.__weight_tkg * 16
+        self.calc()
     
     @property
     def price_tkg(self):
@@ -117,15 +87,79 @@ class IItem(abc.ABC):
     @price_tkg.setter
     def price_tkg(self, value:float):
         self.__price_tkg = max(float(value), 0)
+        self.__price_tael = self.__price_tkg / 16
+
+    @property
+    def weight_tael(self):
+        return self.__weight_tael
+    
+    @weight_tael.setter
+    def weight_tael(self, value:float):
+        self.__weight_tael = max(float(value), 0)
+        self.__weight_tkg = self.__weight_tael / 16
+        self.calc()
         
     @property
-    def price_item(self):
-        return self.__price_item
+    def price_tael(self):
+        return self.__price_tael
     
-    @price_item.setter
-    def price_item(self, value:float):
-        self.__price_item = max(float(value), 0)
+    @price_tael.setter
+    def price_tael(self, value:float):
+        self.__price_tael = max(float(value), 0)
+        self.__price_tkg = self.__price_tael * 16
+        
+    @property
+    def details(self):
+        product_name = f'{self.name}'
+        if not self.price_tael == 0:
+            product_name += f' {self.price_tael}/兩 x {self.weight_tael}兩'
+        product_name += f' x {self.number:.1f} = {self.price}'
+        return product_name
+    
+    @property
+    def attributes(self):
+        return {'weight_tkg':self.weight_tkg, 'price_tkg':self.price_tkg, 'weight_tael':self.weight_tael, 'price_tael':self.price_tael, 'name':self.name, 'price_item':self.price_item, 'price':self.price, 'number':self.number}
 
-class Item(IItem):
-    def __init__(self, item_type: ItemType, meat_part: MeatPart, cook_method: CookMethod, gender: Gender = Gender.Female, weight_tkg: float = None, price_tkg: float = None, price_item: float = None) -> None:
-        super().__init__(item_type, meat_part, cook_method, gender, weight_tkg, price_tkg, price_item)
+    def calc(self):
+        if self.price_item == 0:
+            self.price_item = self.price_tkg * self.weight_tkg
+        self.price = self.price_item * self.number
+        
+class Item(WeightingProduct):
+    def __init__(self, weight_tkg:float=0, price_tkg:float=0, weight_tael:float=0, price_tael:float=0,
+                 name: str = 'Some Product', price_item: float = 0, price: float = 0, number: float = 1) -> None:
+        super().__init__(weight_tkg, price_tkg, weight_tael, price_tael, name, price_item, price, number)
+                
+class Gender(WeightingProduct):
+    def __init__(self, item:Item, gender:str='母') -> None:
+        super().__init__(**item.attributes)
+        self.__item = item
+        self.gender = gender
+        
+    @property
+    def name(self):
+        return self.__item.name + f'({self.gender})'
+        
+class Cut(WeightingProduct):
+    def __init__(self, item:Item, cut_part:str='全隻') -> None:
+        super().__init__(**item.attributes)
+        self.__item = item
+        self.cut_part = cut_part
+        
+    @property
+    def name(self):
+        return self.__item.name + self.cut_part
+    
+class ForGod(WeightingProduct):
+    def __init__(self, item:Item) -> None:
+        super().__init__(**item.attributes)
+        self.__item = item
+        
+    @property
+    def name(self):
+        return f'敬神{self.__item.name}'
+    
+if __name__ == "__main__":
+    print (Cut(Gender(Item(name='烤鴨'),'母'),'半隻'))
+    print (Cut(Gender(Item(name='敬神烤鴨'),'公'),'全隻'))
+    print (Cut(Gender(Item(name='烤鴨'),'母'),'四分之一'))

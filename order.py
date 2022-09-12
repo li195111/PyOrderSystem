@@ -1,18 +1,17 @@
 from __future__ import annotations
-import abc
+from typing import List
+from items import IProduct, WeightingProduct
 from datetime import datetime
 
-class IOrder(abc.ABC):
+class IOrder(IProduct):
     '''訂單'''
-    def __init__(self, order_datetime:datetime, items:list, name:str, phone:str) -> None:
-        super().__init__()
+    def __init__(self, order_datetime:datetime, items:list, phone:str,
+                 name: str = 'Some People', price_item: float = 0, price: float = 0, number: float = 1) -> None:
+        super().__init__(name, price_item, price, number)
         self.__order_datetime = order_datetime
-        self.__items = items
-        self.__name = name
+        self.__items:List[WeightingProduct] = items
         self.__phone = phone
-        
-    def __repr__(self) -> str:
-        return f'{self.name} {self.order_datetime} {self.items} {self.phone}'
+        self.calc()
         
     @property
     def order_datetime(self):
@@ -29,14 +28,7 @@ class IOrder(abc.ABC):
     @items.setter
     def items(self, value:list):
         self.__items = list(value)
-        
-    @property
-    def name(self):
-        return self.__name
-    
-    @name.setter
-    def name(self, value:str):
-        self.__name = str(value)
+        self.calc()
         
     @property
     def phone(self):
@@ -45,7 +37,15 @@ class IOrder(abc.ABC):
     @phone.setter
     def phone(self, value:str):
         self.__phone = str(value)
+    
+    @property
+    def details(self):
+        return f'{self.order_datetime:%Y-%m-%d %H:%M} {self.name} {self.phone} {self.price} {self.items}'
+        
+    def calc(self):
+        for item in self.items:
+            self.price += item.price
 
 class Order(IOrder):
-    def __init__(self, order_datetime: datetime, items: list, name: str, phone: str) -> None:
-        super().__init__(order_datetime, items, name, phone)
+    def __init__(self, order_datetime: datetime, items: list, phone: str, name: str = 'Some People', price_item: float = 0, price: float = 0, number: float = 1) -> None:
+        super().__init__(order_datetime, items, phone, name, price_item, price, number)
